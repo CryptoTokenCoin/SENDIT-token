@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Buy $SENDIT Token</title>
+  <script src="https://cdn.jsdelivr.net/npm/web3@latest/dist/web3.min.js"></script>
+  <script src="https://unpkg.com/@pancakeswap/sdk@3.0.3/dist/index.umd.js"></script>
+  <style>
+    body { font-family: Arial, sans-serif; background: #0f172a; color: white; text-align: center; padding: 2em; }
+    h1 { color: #22d3ee; }
+    button { background: #22d3ee; color: #0f172a; padding: 1em 2em; font-size: 1.2em; border: none; border-radius: 8px; cursor: pointer; margin-top: 2em; }
+    button:hover { background: #0ea5e9; }
+  </style>
+</head>
+<body>
+  <h1>Buy $SENDIT Token</h1>
+  <p>Connect your wallet and swap BNB for $SENDIT instantly via PancakeSwap.</p>
+  <button id="buyButton">Buy $SENDIT</button>
+
+  <script>
+    const tokenAddress = "0xe4c9b899571CA117Ad31AbD59A2e5a0539c4BE34"; // your token address
+    const pancakeSwapRouter = "0x10ED43C718714eb63d5aA57B78B54704E256024E"; // PancakeSwap v2 Router
+
+    async function buyToken() {
+      if (typeof window.ethereum === 'undefined') {
+        alert('Please install MetaMask to continue.');
+        return;
+      }
+
+      const web3 = new Web3(window.ethereum);
+      await window.ethereum.request({ method: 'eth_requestAccounts' });
+
+      const accounts = await web3.eth.getAccounts();
+      const account = accounts[0];
+
+      const amountInBNB = web3.utils.toWei('0.01', 'ether'); // Change this amount if needed
+
+      const router = new web3.eth.Contract([
+        {
+          "inputs": [
+            {"internalType": "uint256","name": "amountOutMin","type": "uint256"},
+            {"internalType": "address[]","name": "path","type": "address[]"},
+            {"internalType": "address","name": "to","type": "address"},
+            {"internalType": "uint256","name": "deadline","type": "uint256"}
+          ],
+          "name": "swapExactETHForTokensSupportingFeeOnTransferTokens",
+          "outputs": [],
+          "stateMutability": "payable",
+          "type": "function"
+        }
+      ], pancakeSwapRouter);
+
+      const path = [
+        "0xBB4CdB9CBd36B01bD1cBaEBF2De08d9173bc095c", // WBNB
+        tokenAddress
+      ];
+
+      try {
+        await router.methods.swapExactETHForTokensSupportingFeeOnTransferTokens(
+          0, // minimum amount of tokens to receive
+          path,
+          account,
+          Math.floor(Date.now() / 1000) + 60 * 10 // deadline: 10 mins
+        ).send({ from: account, value: amountInBNB });
+
+        alert("Swap successful! Check your wallet for $SENDIT");
+      } catch (error) {
+        console.error(error);
+        alert("Transaction failed. See console for details.");
+      }
+    }
+
+    document.getElementById("buyButton").addEventListener("click", buyToken);
+  </script>
+</body>
+</html>
